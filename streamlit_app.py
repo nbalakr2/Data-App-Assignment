@@ -38,8 +38,8 @@ selected_category = st.selectbox("Select a Category", category_list)
 
 # ✅ (2) Multiselect for Sub_Category in selected Category
 filtered_df = df[df["Category"] == selected_category]
-sub_category_list = filtered_df["Sub-Category"].unique()
-selected_subcategories = st.multiselect("Select Sub-Categories", sub_category_list)
+sub_category_list = filtered_df["Sub_Category"].unique()
+selected_subcategories = st.multiselect("Select Sub-Categories", options=sub_category_list)
 
 # ✅ (3) Line chart of sales for selected items
 # Show filtered sales by month only when subcategories are selected
