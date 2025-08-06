@@ -28,7 +28,7 @@ sales_by_month = df.filter(items=['Sales']).groupby(pd.Grouper(freq='M')).sum()
 st.dataframe(sales_by_month)
 
 # Here the grouped months are the index and automatically used for the x axis
-st.line_chart(sales_by_month, y="Sales")
+#st.line_chart(sales_by_month, y="Sales")
 
 df.reset_index(inplace=True)
 
