@@ -7,7 +7,6 @@ st.title("Data App Assignment, on July 14th")
 
 st.write("### Input Data and Examples")
 df = pd.read_csv("Superstore_Sales_utf8.csv", header=0, parse_dates=True)
-st.write("COLUMN DEBUG:", df.columns.tolist())
 df.columns = df.columns.str.strip()  
 st.dataframe(df)
 
@@ -37,7 +36,7 @@ category_list = df['Category'].unique()
 selected_category = st.selectbox("Select a Category", options=category_list)
 
 filtered_df = df[df['Category'] == selected_category]
-sub_category_list = filtered_df['Sub-Category'].unique()
+sub_category_list = filtered_df['Sub_Category'].unique()
 st.write("Available columns:", filtered_df.columns)
 selected_subcategories = st.multiselect("Select Sub-Categories", options=sub_category_list)
 
