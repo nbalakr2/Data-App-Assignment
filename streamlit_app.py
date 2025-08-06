@@ -24,7 +24,7 @@ df.set_index("Order_Date", inplace=True)
 sales_by_month = df.filter(items=["Sales"]).groupby(pd.Grouper(freq='M')).sum()
 
 st.dataframe(sales_by_month)
-st.line_chart(sales_by_month, y="Sales")
+#st.line_chart(sales_by_month, y="Sales")
 
 # Reset index for further filtering
 df.reset_index(inplace=True)
@@ -39,16 +39,23 @@ sub_category_list = filtered_df["Sub-Category"].unique()
 selected_subcategories = st.multiselect("Select Sub-Categories", sub_category_list)
 
 # ✅ (3) Line chart of sales for selected items
+# Show filtered sales by month only when subcategories are selected
 if selected_subcategories:
     sub_df = filtered_df[filtered_df["Sub-Category"].isin(selected_subcategories)].copy()
-    sub_df["Order_Date"] = pd.to_datetime(sub_df["Order_Date"])
-    sub_df.set_index("Order_Date", inplace=True)
 
-    sales_by_month_filtered = sub_df.filter(items=["Sales"]).groupby(pd.Grouper(freq="M")).sum()
+    # Convert Order_Date and group
+    sub_df["Order_Date"] = pd.to_datetime(sub_df["Order_Date"])
+    sales_by_month_filtered = (
+        sub_df
+        .groupby(pd.Grouper(key="Order_Date", freq="M"))["Sales"]
+        .sum()
+    )
+
     st.write("### Monthly Sales for Selected Sub-Categories")
-    st.line_chart(sales_by_month_filtered, y="Sales")
+    st.line_chart(sales_by_month_filtered)
 else:
-    st.info("Please select at least one sub-category to see the line chart.")
+    st.info("Please select at least one sub-category to see the filtered line chart.")
+
 
 # ✅ Instructions (unchanged)
 st.write("## Your additions")
