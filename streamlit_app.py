@@ -36,7 +36,8 @@ category_list = df['Category'].unique()
 selected_category = st.selectbox("Select a Category", options=category_list)
 
 filtered_df = df[df['Category'] == selected_category]
-st.write("Available columns:", filtered_df.columns)  # TEMP debug line
+sub_category_list = filtered_df['Sub-Category'].unique()
+st.write("Available columns:", filtered_df.columns)
 selected_subcategories = st.multiselect("Select Sub-Categories", options=sub_category_list)
 
 
