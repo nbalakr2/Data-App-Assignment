@@ -6,57 +6,51 @@ import math
 st.title("Data App Assignment, on July 14th")
 
 st.write("### Input Data and Examples")
-
-# ✅ Load and clean the data
-df = pd.read_csv("Superstore_Sales_utf8.csv", header=1, parse_dates=True)
-df.columns = df.columns.str.strip().str.replace(" ", "_")
-df["Order_Date"] = pd.to_datetime(df["Order_Date"])  # Ensure datetime
+df = pd.read_csv("Superstore_Sales_utf8.csv", parse_dates=True)
+df.columns = df.columns.str.strip()  # Clean any whitespace
 
 st.dataframe(df)
 
-# ✅ This bar chart will not have solid bars--but lines--because the detail data is being graphed independently
+# Original bar chart: raw data
 st.bar_chart(df, x="Category", y="Sales")
 
-# ✅ Aggregated bar chart
+# Aggregated by Category (solid bars)
 st.dataframe(df.groupby("Category").sum())
 st.bar_chart(df.groupby("Category", as_index=False).sum(), x="Category", y="Sales", color="#04f")
 
-# ✅ Aggregated by time (full dataset)
-sales_by_month = df.filter(items=['Sales', 'Order_Date']).groupby(pd.Grouper(key='Order_Date', freq='M')).sum()
+# Aggregated by Month (original chart)
+df["Order_Date"] = pd.to_datetime(df["Order_Date"])
+df.set_index("Order_Date", inplace=True)
+sales_by_month = df.filter(items=["Sales"]).groupby(pd.Grouper(freq='M')).sum()
+
 st.dataframe(sales_by_month)
-# st.line_chart(sales_by_month, y="Sales")  # Commented out to prevent conflict
+st.line_chart(sales_by_month, y="Sales")
 
-# ✅ Category Dropdown
-category_list = df['Category'].unique()
-selected_category = st.selectbox("Select a Category", options=category_list)
+# Reset index for further filtering
+df.reset_index(inplace=True)
 
-# ✅ Sub-Category Multiselect based on selected category
-filtered_df = df[df['Category'] == selected_category]
-sub_category_list = filtered_df['Sub_Category'].unique()
-selected_subcategories = st.multiselect("Select Sub-Categories", options=sub_category_list)
+# ✅ (1) Dropdown for Category
+category_list = df["Category"].unique()
+selected_category = st.selectbox("Select a Category", category_list)
 
-# ✅ Filtered Line Chart of Monthly Sales
+# ✅ (2) Multiselect for Sub_Category in selected Category
+filtered_df = df[df["Category"] == selected_category]
+sub_category_list = filtered_df["Sub-Category"].unique()
+selected_subcategories = st.multiselect("Select Sub-Categories", sub_category_list)
+
+# ✅ (3) Line chart of sales for selected items
 if selected_subcategories:
-    sub_df = filtered_df[filtered_df['Sub_Category'].isin(selected_subcategories)].copy()
+    sub_df = filtered_df[filtered_df["Sub-Category"].isin(selected_subcategories)].copy()
+    sub_df["Order_Date"] = pd.to_datetime(sub_df["Order_Date"])
+    sub_df.set_index("Order_Date", inplace=True)
 
-    st.write("DEBUG - Sub DF Shape:", sub_df.shape)
-    st.write("DEBUG - First 5 Rows of Sub DF:", sub_df.head())
-    st.write("DEBUG - Selected Sub-Categories:", selected_subcategories)
-
-
-    sales_by_month_filtered = (
-        sub_df
-        .groupby(pd.Grouper(key='Order_Date', freq='M'))['Sales']
-        .sum()
-    )
-
+    sales_by_month_filtered = sub_df.filter(items=["Sales"]).groupby(pd.Grouper(freq="M")).sum()
     st.write("### Monthly Sales for Selected Sub-Categories")
-    st.line_chart(sales_by_month_filtered)
-
+    st.line_chart(sales_by_month_filtered, y="Sales")
 else:
     st.info("Please select at least one sub-category to see the line chart.")
 
-# ✅ Assignment instructions (unchanged)
+# ✅ Instructions (unchanged)
 st.write("## Your additions")
 st.write("### (1) add a drop down for Category (https://docs.streamlit.io/library/api-reference/widgets/st.selectbox)")
 st.write("### (2) add a multi-select for Sub_Category *in the selected Category (1)* (https://docs.streamlit.io/library/api-reference/widgets/st.multiselect)")
