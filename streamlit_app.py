@@ -39,6 +39,11 @@ selected_subcategories = st.multiselect("Select Sub-Categories", options=sub_cat
 if selected_subcategories:
     sub_df = filtered_df[filtered_df['Sub_Category'].isin(selected_subcategories)].copy()
 
+    st.write("DEBUG - Sub DF Shape:", sub_df.shape)
+    st.write("DEBUG - First 5 Rows of Sub DF:", sub_df.head())
+    st.write("DEBUG - Selected Sub-Categories:", selected_subcategories)
+
+
     sales_by_month_filtered = (
         sub_df
         .groupby(pd.Grouper(key='Order_Date', freq='M'))['Sales']
