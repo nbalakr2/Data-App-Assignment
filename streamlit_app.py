@@ -27,7 +27,7 @@ sales_by_month = (
 )
 
 st.dataframe(sales_by_month)
-st.line_chart(sales_by_month, y="Sales")
+#st.line_chart(sales_by_month, y="Sales")
 
 # Reset index for further filtering
 df.reset_index(inplace=True)
