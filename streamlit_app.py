@@ -7,6 +7,7 @@ st.title("Data App Assignment, on July 14th")
 
 st.write("### Input Data and Examples")
 df = pd.read_csv("Superstore_Sales_utf8.csv", header=0, parse_dates=True)
+st.write("COLUMN DEBUG:", df.columns.tolist())
 df.columns = df.columns.str.strip()  
 st.dataframe(df)
 
