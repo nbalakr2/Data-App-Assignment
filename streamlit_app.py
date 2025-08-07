@@ -7,60 +7,75 @@ st.title("Data App Assignment, on July 14th")
 
 st.write("### Input Data and Examples")
 df = pd.read_csv("Superstore_Sales_utf8.csv", parse_dates=True)
-df.columns = df.columns.str.strip()  # Clean any whitespace
-
 st.dataframe(df)
 
-# Original bar chart: raw data
+# This bar chart will not have solid bars--but lines--because the detail data is being graphed independently
 st.bar_chart(df, x="Category", y="Sales")
 
-# Aggregated by Category (solid bars)
+# Now let's do the same graph where we do the aggregation first in Pandas... (this results in a chart with solid bars)
 st.dataframe(df.groupby("Category").sum())
+# Using as_index=False here preserves the Category as a column.  If we exclude that, Category would become the datafram index and we would need to use x=None to tell bar_chart to use the index
 st.bar_chart(df.groupby("Category", as_index=False).sum(), x="Category", y="Sales", color="#04f")
 
-# Aggregated by Month (original chart)
+# Aggregating by time
+# Here we ensure Order_Date is in datetime format, then set is as an index to our dataframe
 df["Order_Date"] = pd.to_datetime(df["Order_Date"])
-#df.set_index("Order_Date", inplace=True)
-sales_by_month = (
-    df.groupby(pd.Grouper(key="Order_Date", freq='M'))["Sales"]
-    .sum()
-)
+df.set_index('Order_Date', inplace=True)
+# Here the Grouper is using our newly set index to group by Month ('M')
+sales_by_month = df.filter(items=['Sales']).groupby(pd.Grouper(freq='M')).sum()
 
 st.dataframe(sales_by_month)
-#st.line_chart(sales_by_month, y="Sales")
 
-# Reset index for further filtering
-df.reset_index(inplace=True)
+# Here the grouped months are the index and automatically used for the x axis
+st.line_chart(sales_by_month, y="Sales")
 
-# ✅ (1) Dropdown for Category
-category_list = df["Category"].unique()
-selected_category = st.selectbox("Select a Category", category_list)
+# ✅ Prompt 1: Category Dropdown
+selected_category = st.selectbox(
+    'Select a Category',
+    df['Category'].unique()
+)
 
-# ✅ (2) Multiselect for Sub_Category in selected Category
-filtered_df = df[df["Category"] == selected_category]
-sub_category_list = filtered_df["Sub_Category"].unique()
-selected_subcategories = st.multiselect("Select Sub-Categories", options=sub_category_list)
+# ✅ Prompt 2: Sub-Category Multiselect
+filtered_df = df[df['Category'] == selected_category]
+selected_sub_categories = st.multiselect(
+    'Select one or more Sub-Categories',
+    filtered_df['Sub_Category'].unique()
+)
 
-# ✅ (3) Line chart of sales for selected items
-# Show filtered sales by month only when subcategories are selected
-if selected_subcategories:
-    sub_df = filtered_df[filtered_df["Sub-Category"].isin(selected_subcategories)].copy()
-
-    # Convert Order_Date and group
-    sub_df["Order_Date"] = pd.to_datetime(sub_df["Order_Date"])
-    sales_by_month_filtered = (
-        sub_df
-        .groupby(pd.Grouper(key="Order_Date", freq="M"))["Sales"]
-        .sum()
-    )
-
-    st.write("### Monthly Sales for Selected Sub-Categories")
-    st.line_chart(sales_by_month_filtered)
+# ✅ Prompt 3: Line Chart (Filtered)
+st.write("Line chart of sales")
+if selected_sub_categories:
+    selected_items_df = filtered_df[filtered_df['Sub_Category'].isin(selected_sub_categories)]
+    selected_items_df['Order_Date'] = pd.to_datetime(selected_items_df['Order_Date'])
+    selected_items_df.set_index('Order_Date', inplace=True)
+    sales_by_month_selected = selected_items_df.groupby(pd.Grouper(freq='M'))['Sales'].sum().reset_index()
+    st.line_chart(sales_by_month_selected, x='Order_Date', y='Sales')
 else:
-    st.info("Please select at least one sub-category to see the filtered line chart.")
+    st.info("Select one or more Sub-Categories to see the sales chart.")
+
+# ✅ Prompt 4 & 5: Metrics
+st.write("Three Metrics: total sales, total profit, and overall profit margin (%)")
+if selected_sub_categories:
+    total_sales = selected_items_df['Sales'].sum()
+    total_profit = selected_items_df['Profit'].sum()
+
+    if total_sales != 0:
+        overall_profit_margin = (total_profit / total_sales) * 100
+    else:
+        overall_profit_margin = 0
+
+    overall_average_profit_margin = (df['Profit'].sum() / df['Sales'].sum()) * 100
+    profit_margin_delta = overall_profit_margin - overall_average_profit_margin
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Total Sales", f"${total_sales:,.2f}")
+    with col2:
+        st.metric("Total Profit", f"${total_profit:,.2f}")
+    with col3:
+        st.metric("Profit Margin", f"{overall_profit_margin:.2f}%", f"{profit_margin_delta:.2f}%")
 
 
-# ✅ Instructions (unchanged)
 st.write("## Your additions")
 st.write("### (1) add a drop down for Category (https://docs.streamlit.io/library/api-reference/widgets/st.selectbox)")
 st.write("### (2) add a multi-select for Sub_Category *in the selected Category (1)* (https://docs.streamlit.io/library/api-reference/widgets/st.multiselect)")
